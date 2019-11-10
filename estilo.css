@@ -1,0 +1,133 @@
+body
+{
+	background-color: #FFFFFF;
+	padding: 0;
+	margin: 0;
+}
+
+.centrar
+{
+	text-align: center;
+	background-color: #FFFFFF;
+}
+
+
+ons-input
+{
+	width: 80%;
+}
+
+.botonLargo
+{
+    width: 80%;
+    vertical-align: middle;
+}
+
+#map
+{
+	height: 100%;
+}
+
+#splashscreen
+{
+	background: linear-gradient(to right, #43c6ac, #191654);
+}
+
+#splashscreen img
+{
+	margin-top: -45px;
+	margin-left: -100px;
+	left: 50%;
+	top: 50%;
+	position: absolute;
+}
+
+
+#arriba
+{
+	background-color: #D8D8D8;
+	width: 100%;
+	padding-top: 10px;
+	background: linear-gradient(90deg, rgba(2,0,36,1) 0%, rgba(9,9,121,1) 35%, rgba(0,212,255,1) 100%);
+}
+
+#arriba h1
+{
+	font-weight: bold;
+	color: #FFFFFF;
+}
+
+#arriba img
+{
+	margin-top: 20px;
+	margin-bottom: 20px;
+}
+
+#contenido
+{
+	width: 100%;
+}
+
+#abajo
+{
+	text-align: center;
+	padding-top: 40px;
+}
+
+#botonRegistrarse
+{
+	background-color: #585858;
+}	
+
+#botonAceptar
+{
+	background-color: #04B404;
+	color: #FFFFFF;
+}
+
+#botonCancelar
+{
+	background-color: #FF0000;
+	color: #FFFFFF;
+}
+
+#labelRegistro
+{
+	font-weight: bold;
+	font-size: 15px;
+	color: #6E6E6E;
+	margin-right: 10px;
+}
+
+#nombreUsuarioEnMapa
+{
+	font-weight: bold;
+	margin: 10px;
+	font-size: 20px;
+}
+
+
+#map-iframe
+{
+    width: 100%;
+    margin-top: 10px;
+}
+		
+#nuevoUsuario
+{
+	margin-top: 90px;
+	font-weight: bold;
+}
+
+#nombreUsuarioUdg
+{
+	font-weight: bold;
+	margin-top: 40px;
+	margin-bottom: 20px;
+}
+
+#splashscreen
+{
+	height: 100%;
+	width: 100%;
+}
