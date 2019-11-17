@@ -131,11 +131,20 @@
                     </div>
                     <div class="center"></div>
                 </ons-toolbar>
+                <div id="cargando">
+                	<p>Cargando...</p>
+                	<ons-progress-bar indeterminate></ons-progress-bar>
+                </div>
 	               <!--<label style="font-weight: bold; padding-top: 15px;">Placas: </label>
                    <label id='placas'></label>-->
                    <!--
 	                <iframe id="map-iframe" class="iframe" src="https://maps.google.com/?ll=20.6556784,-103.3248379&z=18&t=p&output=embed" height="600" frameborder="0" style="border:0" allowfullscreen></iframe><br>-->
                     <div id="map"></div>
+
+                    <div>
+                    	<ons-button id="botonDesocuparLugar">Desocupar lugar</ons-button>
+                		<ons-button id="botonEstacionarse">Estacionarse</ons-button>
+                    </div>
                     
             </ons-page>
         </template>

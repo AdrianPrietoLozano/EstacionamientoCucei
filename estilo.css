@@ -11,6 +11,13 @@ body
 	background-color: #FFFFFF;
 }
 
+#cargando{
+	margin-bottom: 3px;
+	text-align: center;
+}
+
+#botonDesocuparLugar{ width: 45%; text-align: center;}
+#botonEstacionarse{ width: 45%; text-align: center;}
 
 ons-input
 {
@@ -25,7 +32,7 @@ ons-input
 
 #map
 {
-	height: 100%;
+	height: 90%;
 }
 
 #splashscreen

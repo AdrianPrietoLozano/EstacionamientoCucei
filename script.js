@@ -4,11 +4,12 @@ var codigoAlumno;
 var nombreAlumno;
 var interval;
 var map;
+var markers = [];
 var infowindow;
+var progressBar;
 
 function iniciar()
 {
-    console.log("iniciar()");
     myNavigator = document.getElementById("myNavigator");
     dialogUsuarioUdg = document.getElementById('dialogDatosUsuarioUdg');
 
@@ -39,6 +40,9 @@ document.addEventListener('init', function(event){
         var nombre = localStorage.getItem('nombreUsuario');
         page.querySelector('ons-toolbar .center').innerHTML = nombre;
         page.querySelector("#botonCerrarSesion").onclick = cerrarSesion;
+        page.querySelector("#botonDesocuparLugar").onclick = desocuparLugar;
+        page.querySelector("#botonEstacionarse").onclick = iniciarEstacionarse;
+        progressBar = page.querySelector("#cargando");
         initMap(page);
     }
     else if(page.id === "paginaInicioSesion")
@@ -50,11 +54,93 @@ document.addEventListener('init', function(event){
 });
 
 
+function quitarMarcadores()
+{
+	for(var i = 0; i < markers.length; i++)
+	{
+		markers[i].setMap(null);
+	}
 
-function guardarEnLocalStorage(codigo, nombre)
+	markers = [];
+}
+
+function estacionarse(ubicacion)
+{
+	//todo el http reques
+
+	ons.notification.alert("hh");
+	ons.notification.alert(ubicacion.coords.longitude);
+	console.log(ubicacion.coords.latitude);
+
+	// enviamos las variables al servidor y recojemos la respuesta
+    var xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function()
+    {
+        if(this.readyState == 4 && this.status == 200)
+        {
+            if(this.responseText == "1")
+            {
+                ubicacionesLugaresOcupados();
+            }
+            else
+            {
+                ons.notification.alert("Ocurrio un error");
+            }
+        }
+    };
+
+    xhttp.open("GET", "https://adrianpl.000webhostapp.com/estacionarse.php?" + 
+    	"latitude=" + ubicacion.coords.latitude + "&longitud=" + 
+    	ubicacion.coords.longitude + "&placas=" + localStorage.getItem('placas') +
+    	"&ocupado=1", true);
+    xhttp.send();
+
+}
+
+function iniciarEstacionarse()
+{
+	quitarMarcadores(); // quita los marcadores del mapa
+	progressBar.style.display = "block"; // muestra barra de carga
+
+	if(navigator.geolocation)
+	{
+		navigator.geolocation.getCurrentPosition(estacionarse);
+	}
+}
+
+function desocuparLugar()
+{
+	quitarMarcadores(); // quita los marcadores del mapa
+	progressBar.style.display = "block"; // muestra barra de carga
+
+	// enviamos las variables al servidor y recojemos la respuesta
+    var xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function()
+    {
+        if(this.readyState == 4 && this.status == 200)
+        {
+            if(this.responseText == "1")
+            {
+                ubicacionesLugaresOcupados();
+            }
+            else
+            {
+                ons.notification.alert("Ocurrio un error");
+            }
+        }
+    };
+
+    xhttp.open("GET", "https://adrianpl.000webhostapp.com/desocuparLugar.php?" + 
+    	"placas=" + localStorage.getItem('placas'), true);
+    xhttp.send();
+}
+
+
+function guardarEnLocalStorage(codigo, nombre, placas)
 {
     localStorage.setItem('codigoUsuario', codigo);
     localStorage.setItem('nombreUsuario', nombre);
+    localStorage.setItem('placas', placas);
 }
 
 
@@ -120,10 +206,13 @@ function enviar(page)
 			        	var respuesta = this.responseText.split(",");
 			        	var res = respuesta[0];
 			        	var nombreRes = respuesta[1];
+			        	var placas = respuesta[2];
+
+			        	ons.notification.alert("placas: " + placas);
 
 			        	// usuario udg registrado
 			        	if(res === "usuario udg registrado"){
-                            guardarEnLocalStorage(codigo, nombreRes)
+                            guardarEnLocalStorage(codigo, nombreRes, placas)
 			        		iniciarPaginaMapaEstacionamiento();
 			        	}
 			        	// usuario udg no registrado
@@ -132,7 +221,7 @@ function enviar(page)
 			        	}
 			        	// usuario normal registrado
 			        	else if(res === "usuario registrado"){
-			        		guardarEnLocalStorage(codigo, nombreRes)
+			        		guardarEnLocalStorage(codigo, nombreRes, placas)
 			        		iniciarPaginaMapaEstacionamiento();
 			        	}
 			        	// usuario no registrado
@@ -176,7 +265,7 @@ function registrarUsuarioBD(codigo, nombre, placas, telefono, contrasenia)
         {
             if(this.responseText[0] == "1")
             {
-                guardarEnLocalStorage(codigo, nombre);
+                guardarEnLocalStorage(codigo, nombre, placas);
                 iniciarPaginaMapaEstacionamiento();
             }
             else
@@ -295,24 +384,33 @@ function ubicacionesLugaresOcupados()
     {
         if(this.readyState == 4 && this.status == 200)
         {
-            if(JSON.stringify(this.response) == "0")
-            {
-                ons.notification.alert("Ocurrió un error al cargar las ubicaciones");
-            }
-            else
-            {
-                var lugaresOcupados = this.response['ubicaciones'];
+        	if(this.status == 200)
+        	{
 
-                for(var i = 0; i < lugaresOcupados.length; i++)
-                {
-                    var latitud = JSON.parse(lugaresOcupados[i].latitud);
-                    var longitud = JSON.parse(lugaresOcupados[i].longitud);
-                    var ubicacion = new google.maps.LatLng(latitud, longitud);
-                    var contentString = '<p>' + lugaresOcupados[i].placas + '</p>';
+        		if(JSON.stringify(this.response) == "0")
+            	{
+                	ons.notification.alert("Ocurrió un error al cargar las ubicaciones");
+            	}
+            	else
+            	{
+                	var lugaresOcupados = this.response['ubicaciones'];
 
-                    crearMarcador(ubicacion, contentString);
-                }
-            }
+	                for(var i = 0; i < lugaresOcupados.length; i++)
+	                {
+	                    var latitud = JSON.parse(lugaresOcupados[i].latitud);
+	                    var longitud = JSON.parse(lugaresOcupados[i].longitud);
+	                    var ubicacion = new google.maps.LatLng(latitud, longitud);
+	                    var contentString = '<p>' + lugaresOcupados[i].placas + '</p>';
+
+	                    crearMarcador(ubicacion, contentString);
+	                }
+            	}
+            	progressBar.style.display = "none";
+        	}
+        	else
+        	{
+        		
+        	}
         }
     };
 
@@ -333,6 +431,8 @@ function crearMarcador(ubicacion, contenidoInfoWindow) {
         infowindow.setContent(contenidoInfoWindow);
         infowindow.open(map, marker);
     });
+
+    markers.push(marker);
 
 }
 
