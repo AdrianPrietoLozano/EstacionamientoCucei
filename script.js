@@ -7,6 +7,7 @@ var map;
 var markers = [];
 var infowindow;
 var progressBar;
+var paginaEstacionamiento;
 
 function iniciar()
 {
@@ -37,6 +38,7 @@ document.addEventListener('init', function(event){
     
     if(page.id === "paginaMapaEstacionamiento" )
     {
+    	paginaEstacionamiento = page;
         var nombre = localStorage.getItem('nombreUsuario');
         page.querySelector('ons-toolbar .center').innerHTML = nombre;
         page.querySelector("#botonCerrarSesion").onclick = cerrarSesion;
@@ -54,6 +56,7 @@ document.addEventListener('init', function(event){
 });
 
 
+// elimina los marcadores del mapa
 function quitarMarcadores()
 {
 	for(var i = 0; i < markers.length; i++)
@@ -64,43 +67,13 @@ function quitarMarcadores()
 	markers = [];
 }
 
-function estacionarse(ubicacion)
-{
-	//todo el http reques
-
-	ons.notification.alert("hh");
-	ons.notification.alert(ubicacion.coords.longitude);
-	console.log(ubicacion.coords.latitude);
-
-	// enviamos las variables al servidor y recojemos la respuesta
-    var xhttp = new XMLHttpRequest();
-    xhttp.onreadystatechange = function()
-    {
-        if(this.readyState == 4 && this.status == 200)
-        {
-            if(this.responseText == "1")
-            {
-                ubicacionesLugaresOcupados();
-            }
-            else
-            {
-                ons.notification.alert("Ocurrio un error");
-            }
-        }
-    };
-
-    xhttp.open("GET", "https://adrianpl.000webhostapp.com/estacionarse.php?" + 
-    	"latitude=" + ubicacion.coords.latitude + "&longitud=" + 
-    	ubicacion.coords.longitude + "&placas=" + localStorage.getItem('placas') +
-    	"&ocupado=1", true);
-    xhttp.send();
-
-}
-
+// elimina los marcadores, muestra progress bar
+// y si la geolocalizacion esta disponible iniciar
+// el proceso para insertar en la BD
 function iniciarEstacionarse()
 {
 	quitarMarcadores(); // quita los marcadores del mapa
-	progressBar.style.display = "block"; // muestra barra de carga
+	mostrarCargando();
 
 	if(navigator.geolocation)
 	{
@@ -108,10 +81,63 @@ function iniciarEstacionarse()
 	}
 }
 
+
+// esconde la barra de progreso y aumenta el alto del mapa
+// para que no quede pantalla en blanco
+function esconderCargando()
+{
+	progressBar.style.display = "none";
+	paginaEstacionamiento.querySelector('#map').style.height = "93%";
+}
+
+
+// muestra la barra de progreso y reduce el alto del mapa
+// para no esconder los botones de estacionarse y desocupar lugar
+function mostrarCargando()
+{
+	progressBar.style.display = "block";
+	paginaEstacionamiento.querySelector('#map').style.height = "87%";
+}
+
+
+// ingresa el registro en la base de datos y recarga los marcadores
+function estacionarse(ubicacion)
+{
+	// enviamos las variables al servidor y recojemos la respuesta
+    var xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function()
+    {
+        if(this.readyState == 4 && this.status == 200)
+        {
+            if(this.responseText == "1")
+            {
+                ubicacionesLugaresOcupados(); // poner marcadores en el mapa
+            }
+            else
+            {
+                ons.notification.alert("Ocurrio un error");
+                esconderCargando();
+            }
+        }
+    };
+
+    var lat = ubicacion.coords.latitude;
+    var lon = ubicacion.coords.longitude;
+
+    xhttp.open("GET", "https://adrianpl.000webhostapp.com/estacionarse.php?" + 
+    	"latitud=" + lat + "&longitud=" + lon + "&placas=" +
+    	localStorage.getItem('placas'), true);
+    xhttp.send();
+
+}
+
+
+// eliminar los marcadores del mapa, muestra el progress bar,
+// elimina el registro de la BD y si todo sale bien recarga los marcadores
 function desocuparLugar()
 {
 	quitarMarcadores(); // quita los marcadores del mapa
-	progressBar.style.display = "block"; // muestra barra de carga
+	mostrarCargando();
 
 	// enviamos las variables al servidor y recojemos la respuesta
     var xhttp = new XMLHttpRequest();
@@ -126,11 +152,12 @@ function desocuparLugar()
             else
             {
                 ons.notification.alert("Ocurrio un error");
+                esconderCargando();
             }
         }
     };
 
-    xhttp.open("GET", "https://adrianpl.000webhostapp.com/desocuparLugar.php?" + 
+    xhttp.open("GET", "https://adrianpl.000webhostapp.com/desocupar_lugar.php?" + 
     	"placas=" + localStorage.getItem('placas'), true);
     xhttp.send();
 }
@@ -145,6 +172,7 @@ function guardarEnLocalStorage(codigo, nombre, placas)
 
 
 
+// inicia la pagina del estacionamiento y pone los marcadores en el mapa
 function iniciarPaginaMapaEstacionamiento()
 {
 	myNavigator.pushPage('paginaMapaEstacionamiento.html');
@@ -208,7 +236,7 @@ function enviar(page)
 			        	var nombreRes = respuesta[1];
 			        	var placas = respuesta[2];
 
-			        	ons.notification.alert("placas: " + placas);
+			        	//ons.notification.alert("placas: " + placas);
 
 			        	// usuario udg registrado
 			        	if(res === "usuario udg registrado"){
@@ -376,6 +404,7 @@ function registrarNuevoUsuario()
 
 
 
+// muestra un marcador por cada lugar ocupado del estacionamiento.
 function ubicacionesLugaresOcupados()
 {
     infowindow = new google.maps.InfoWindow();
@@ -405,7 +434,7 @@ function ubicacionesLugaresOcupados()
 	                    crearMarcador(ubicacion, contentString);
 	                }
             	}
-            	progressBar.style.display = "none";
+            	esconderCargando();
         	}
         	else
         	{
