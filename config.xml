@@ -17,6 +17,7 @@
       Adrian Prieto Lozano
   </author>
 
+  <content src="index.html" />
   <access origin="*" />
 
 </widget>
