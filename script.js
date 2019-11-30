@@ -8,6 +8,10 @@ var markers = [];
 var infowindow;
 var progressBar;
 var paginaEstacionamiento;
+var paginaRegistro; // 56640
+
+var regExpTelefono = /^\D?(\d{3})\D?\D?(\d{3})\D?(\d{4})$/;
+//var regExpPlacas = /[A-Z]{3}-[0-9]{2}[A-Z0-9]/;
 
 function iniciar()
 {
@@ -53,6 +57,10 @@ document.addEventListener('init', function(event){
             enviar(page);
         };
     }
+    else if(page.id === "paginaRegistroNuevoUsuario")
+    {
+    	paginaRegistro = page;
+    }
 });
 
 
@@ -77,8 +85,22 @@ function iniciarEstacionarse()
 
 	if(navigator.geolocation)
 	{
-		navigator.geolocation.getCurrentPosition(estacionarse);
+		navigator.geolocation.getCurrentPosition(estacionarse, function(error){
+			ons.notification.alert("error");
+			esconderCargando();
+		});
 	}
+	else
+	{
+		ons.notification.alert("Error: No se soporta la geolocalizacion");
+	}
+}
+
+
+function error(error)
+{
+	ubicacionesLugaresOcupados();
+	ons.notification.alert('ERROR(' + error.code + '): ' + error.message);
 }
 
 
@@ -107,17 +129,30 @@ function estacionarse(ubicacion)
     var xhttp = new XMLHttpRequest();
     xhttp.onreadystatechange = function()
     {
-        if(this.readyState == 4 && this.status == 200)
+        if(this.readyState == 4)
         {
-            if(this.responseText == "1")
-            {
-                ubicacionesLugaresOcupados(); // poner marcadores en el mapa
-            }
-            else
-            {
-                ons.notification.alert("Ocurrio un error");
-                esconderCargando();
-            }
+        	if(this.status == 200)
+        	{
+        		ons.notification.alert(this.responseText);
+        		switch(this.responseText)
+        		{
+        			case '0': // no se insertó correctamente
+        				ons.notification.alert("Ocurrió un error");
+        				break;
+        			case '2': // usuario YA estacionado
+        				ons.notification.alert("Error: Ya estas estacionado");
+        				break;
+        			default:
+        				ons.notification.alert("default");
+        		}
+
+        		ubicacionesLugaresOcupados();
+        	}
+        	else
+        	{
+        		ubicacionesLugaresOcupados(); // poner marcadores en el mapa
+        		ons.notification.alert("Ocurrio un error");
+        	}
         }
     };
 
@@ -195,9 +230,6 @@ function enviar(page)
     var codigo = page.querySelector("#codigoEstudiante").value;
     var nip = page.querySelector("#nip").value;
 
-    console.log("codigo: " + codigo);
-    console.log("contraseña: " + nip);
-
     // comprobar que los campos no esten vacíos
     if(codigo === "" || nip === "")
     {
@@ -227,39 +259,46 @@ function enviar(page)
 	        	var xhttp2 = new XMLHttpRequest();
 			    xhttp.onreadystatechange = function()
 			    {
-			        if(this.readyState == 4 && this.status == 200)
+			        if(this.readyState == 4)
 			        {
-                        console.log("Respuesta: " + this.responseText);
-			        	// el script devuelve el tipo de usuario, codigo y nombre
-			        	var respuesta = this.responseText.split(",");
-			        	var res = respuesta[0];
-			        	var nombreRes = respuesta[1];
-			        	var placas = respuesta[2];
-
-			        	//ons.notification.alert("placas: " + placas);
-
-			        	// usuario udg registrado
-			        	if(res === "usuario udg registrado"){
-                            guardarEnLocalStorage(codigo, nombreRes, placas)
-			        		iniciarPaginaMapaEstacionamiento();
-			        	}
-			        	// usuario udg no registrado
-			        	else if(res === "usuario udg no registrado"){
-			        		iniciarDialogUsuarioUdg();
-			        	}
-			        	// usuario normal registrado
-			        	else if(res === "usuario registrado"){
-			        		guardarEnLocalStorage(codigo, nombreRes, placas)
-			        		iniciarPaginaMapaEstacionamiento();
-			        	}
-			        	// usuario no registrado
-			        	else if(res === "usuario no registrado"){
-			        		nuevoUsuario();
-			        	}
-			        	else // ocurrió un error
+			        	if(this.status == 200)
 			        	{
-			        		ons.notification.alert("Ocurrió un error");
-			        	}
+	                        console.log("Respuesta: " + this.responseText);
+				        	// el script devuelve el tipo de usuario, codigo y nombre
+				        	var respuesta = this.responseText.split(",");
+				        	var res = respuesta[0];
+				        	var nombreRes = respuesta[1];
+				        	var placas = respuesta[2];
+
+				        	//ons.notification.alert("placas: " + placas);
+
+				        	// usuario udg registrado
+				        	if(res === "usuario udg registrado"){
+	                            guardarEnLocalStorage(codigo, nombreRes, placas)
+				        		iniciarPaginaMapaEstacionamiento();
+				        	}
+				        	// usuario udg no registrado
+				        	else if(res === "usuario udg no registrado"){
+				        		iniciarDialogUsuarioUdg();
+				        	}
+				        	// usuario normal registrado
+				        	else if(res === "usuario registrado"){
+				        		guardarEnLocalStorage(codigo, nombreRes, placas)
+				        		iniciarPaginaMapaEstacionamiento();
+				        	}
+				        	// usuario no registrado
+				        	else if(res === "usuario no registrado"){
+				        		nuevoUsuario();
+				        	}
+				        	else // ocurrió un error
+				        	{
+				        		ons.notification.alert("Ocurrió un error");
+				        	}
+				        }
+				        else
+				        {
+				        	ons.notification.alert("Ocurrió un error. Vuelve a intentarlo");
+				        }
 			        }
 			    };
 
@@ -289,17 +328,24 @@ function registrarUsuarioBD(codigo, nombre, placas, telefono, contrasenia)
     var xhttp = new XMLHttpRequest();
     xhttp.onreadystatechange = function()
     {
-        if(this.readyState == 4 && this.status == 200)
+        if(this.readyState == 4)
         {
-            if(this.responseText[0] == "1")
-            {
-                guardarEnLocalStorage(codigo, nombre, placas);
-                iniciarPaginaMapaEstacionamiento();
-            }
-            else
-            {
-                ons.notification.alert("Ocurrio un error");
-            }
+        	if(this.status == 200)
+        	{
+	            if(this.responseText[0] == "1")
+	            {
+	                guardarEnLocalStorage(codigo, nombre, placas);
+	                iniciarPaginaMapaEstacionamiento();
+	            }
+	            else
+	            {
+	                ons.notification.alert("Ocurrio un error");
+	            }
+        	}
+        	else
+        	{
+        		ons.notification.alert("Ocurrio un error");
+        	}
         }
     };
 
@@ -349,7 +395,7 @@ function nuevoUsuario()
         .then(function ()
         	{
         		var codigoGenerado = generarCodigo();
-        		document.getElementById('codigoGenerado').innerText = codigoGenerado;
+        		paginaRegistro.querySelector('#codigoGenerado').innerText = codigoGenerado;
         	});
 }
 
@@ -374,19 +420,19 @@ function generarCodigo()
 /* registra un usuario que no es de udg */
 function registrarNuevoUsuario()
 {
-    var codigo = document.getElementById('codigoGenerado').innerText;
-    var nombre = document.getElementById('nombreNuevoUsuario').value;
-    var placas = document.getElementById('placasNuevoUsuario').value;
-    var telefono = document.getElementById('telefonoNuevoUsuario').value;
-    var contrasenia = document.getElementById('contraseniaNuevoUsuario').value;
-    var contraseniaRepetida = document.getElementById('contrasenia2NuevoUsuario').value;
+    var codigo = paginaRegistro.querySelector('#codigoGenerado').innerText;
+    var nombre = paginaRegistro.querySelector('#nombreNuevoUsuario').value;
+    var placas = paginaRegistro.querySelector('#placasNuevoUsuario').value;
+    var telefono = paginaRegistro.querySelector('#telefonoNuevoUsuario').value;
+    var contrasenia = paginaRegistro.querySelector('#contraseniaNuevoUsuario').value;
+    var contraseniaRepetida = paginaRegistro.querySelector('#contrasenia2NuevoUsuario').value;
 
     if(!nombre)
         ons.notification.alert("El nombre no puede estar vacío");
     else if(!placas)
-        ons.notification.alert("Las placas no pueden estar vacías");
-    else if(!telefono)
-        ons.notification.alert("El teléfono no puede estar vacío");
+        ons.notification.alert("Placas no válidas");
+    else if(!(regExpTelefono.test(telefono)))
+        ons.notification.alert("Teléfono no válido");
     else if(!contrasenia)
         ons.notification.alert("La contraseña no puede estar vacía");
     else if(!contraseniaRepetida)
@@ -402,7 +448,7 @@ function registrarNuevoUsuario()
     }
 }
 
-
+//52665
 
 // muestra un marcador por cada lugar ocupado del estacionamiento.
 function ubicacionesLugaresOcupados()
@@ -411,7 +457,7 @@ function ubicacionesLugaresOcupados()
     var xhttp = new XMLHttpRequest();
     xhttp.onreadystatechange = function()
     {
-        if(this.readyState == 4 && this.status == 200)
+        if(this.readyState == 4)
         {
         	if(this.status == 200)
         	{
@@ -438,7 +484,13 @@ function ubicacionesLugaresOcupados()
         	}
         	else
         	{
-        		
+        		esconderCargando();
+        		ons
+  					.notification.alert({message: 'Ocurrió un error. La página se recargará'})
+  					.then(function(name) {
+    					mostrarCargando();
+    					ubicacionesLugaresOcupados();
+  					});
         	}
         }
     };
