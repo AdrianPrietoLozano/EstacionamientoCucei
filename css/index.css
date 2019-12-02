@@ -11,6 +11,11 @@ body
 	background-color: #FFFFFF;
 }
 
+.azulGradient
+{
+	background: linear-gradient(90deg, rgba(2,0,36,1) 0%, rgba(9,9,121,1) 35%, rgba(0,212,255,1) 100%);
+}
+
 #cargando{
 	height: 5%;
 	margin-top: 5px;
@@ -37,6 +42,7 @@ ons-input
 {
     width: 80%;
     vertical-align: middle;
+    font-weight: bold;
 }
 
 #map
@@ -146,4 +152,12 @@ ons-input
 {
 	height: 100%;
 	width: 100%;
+}
+
+#cabeceraRegistro
+{
+	font-size: x-large;
+	color: #FFFFFF;
+	background-color: #4284fb;
+	padding: 5%;
 }

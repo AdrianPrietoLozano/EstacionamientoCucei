@@ -75,6 +75,13 @@ function quitarMarcadores()
 	markers = [];
 }
 
+
+function mostrarBotonesEstacionarse()
+{
+	paginaEstacionamiento.querySelector("#botonesEstacionarse").style.display = "block";
+}
+
+
 // elimina los marcadores, muestra progress bar
 // y si la geolocalizacion esta disponible iniciar
 // el proceso para insertar en la BD
@@ -82,13 +89,11 @@ function iniciarEstacionarse()
 {
 	quitarMarcadores(); // quita los marcadores del mapa
 	mostrarCargando();
+	
 
 	if(navigator.geolocation)
 	{
-		navigator.geolocation.getCurrentPosition(estacionarse, function(error){
-			ons.notification.alert("error");
-			esconderCargando();
-		});
+		navigator.geolocation.getCurrentPosition(estacionarse, errorGeolocalizacion, {timeout: 10000});
 	}
 	else
 	{
@@ -97,10 +102,24 @@ function iniciarEstacionarse()
 }
 
 
-function error(error)
+function errorGeolocalizacion(error)
 {
+	switch(error.code)
+	{
+		case error.TIMEOUT:
+			ons.notification.alert("ERROR: Tiempo de espera agotado. Verifica que el GPS este activado.");
+			break;
+		case error.POSITION_UNAVAILABLE:
+			ons.notification.alert("ERROR: No pudimos determinar tu ubicación. Verifica que el GPS este activado.")
+			break;
+		case error.PERMISSION_DENIED:
+			ons.notification.alert("ERROR: Permiso denegado.");
+			break;
+		default:
+			ons.notification.alert("Error desconocido.");
+			break;
+	}
 	ubicacionesLugaresOcupados();
-	ons.notification.alert('ERROR(' + error.code + '): ' + error.message);
 }
 
 
@@ -133,7 +152,6 @@ function estacionarse(ubicacion)
         {
         	if(this.status == 200)
         	{
-        		ons.notification.alert(this.responseText);
         		switch(this.responseText)
         		{
         			case '0': // no se insertó correctamente
@@ -142,8 +160,6 @@ function estacionarse(ubicacion)
         			case '2': // usuario YA estacionado
         				ons.notification.alert("Error: Ya estas estacionado");
         				break;
-        			default:
-        				ons.notification.alert("default");
         		}
 
         		ubicacionesLugaresOcupados();
@@ -180,15 +196,18 @@ function desocuparLugar()
     {
         if(this.readyState == 4 && this.status == 200)
         {
-            if(this.responseText == "1")
-            {
-                ubicacionesLugaresOcupados();
-            }
-            else
-            {
-                ons.notification.alert("Ocurrio un error");
-                esconderCargando();
-            }
+        	switch(this.responseText)
+        	{
+        		case '0':
+        			ons.notification.alert("Ocurrió un error");
+        			break;
+
+        		case '2':
+        			ons.notification.alert("Error: no estas estacionado");
+        			break;
+        	}
+
+        	ubicacionesLugaresOcupados();
         }
     };
 
@@ -223,10 +242,24 @@ function terminarSplashscreen()
     myNavigator.pushPage("paginaInicioSesion.html");
 }
 
+function deshabilitarBotonIniciarSesion(page)
+{
+	page.querySelector("#botonIniciarSesion").innerHTML  = "Iniciando sesion ...";
+	page.querySelector("#botonIniciarSesion").disabled = true;
+}
+
+function habilitarBotonIniciarSesion(page)
+{
+	page.querySelector("#botonIniciarSesion").innerHTML  = "Ingresar";
+	page.querySelector("#botonIniciarSesion").disabled = false;
+}
+
 
 /* autentifica si eres alumno/profesor udg */
 function enviar(page)
 {
+	deshabilitarBotonIniciarSesion(page);
+
     var codigo = page.querySelector("#codigoEstudiante").value;
     var nip = page.querySelector("#nip").value;
 
@@ -234,6 +267,7 @@ function enviar(page)
     if(codigo === "" || nip === "")
     {
     	ons.notification.alert("Error: debes llenar todos los campos");
+    	habilitarBotonIniciarSesion(page);
     }
     else
     {
@@ -241,69 +275,85 @@ function enviar(page)
 	    var xhttp = new XMLHttpRequest();
 	    xhttp.onreadystatechange = function()
 	    {
-	        if(this.readyState == 4 && this.status == 200)
+	        if(this.readyState == 4)
 	        {
-	        	var tipoUsuario; // tipo udg o normal
+	        	if(this.status == 200)
+	        	{
+		        	var tipoUsuario; // tipo udg o normal
 
-	            if(parseInt(this.responseText) == 0){
-	            	tipoUsuario = "no udg";
-	            }
-	            else
-	            {
-	            	var datos = this.responseText.split(",");
-	            	codigoAlumno = datos[1];
-	            	nombreAlumno = datos[2];
-	            	tipoUsuario = "udg";
-	            }
+		            if(parseInt(this.responseText) == 0){
+		            	tipoUsuario = "no udg";
+		            }
+		            else
+		            {
+		            	var datos = this.responseText.split(",");
+		            	codigoAlumno = datos[1];
+		            	nombreAlumno = datos[2];
+		            	tipoUsuario = "udg";
+		            }
 
-	        	var xhttp2 = new XMLHttpRequest();
-			    xhttp.onreadystatechange = function()
-			    {
-			        if(this.readyState == 4)
-			        {
-			        	if(this.status == 200)
-			        	{
-	                        console.log("Respuesta: " + this.responseText);
-				        	// el script devuelve el tipo de usuario, codigo y nombre
-				        	var respuesta = this.responseText.split(",");
-				        	var res = respuesta[0];
-				        	var nombreRes = respuesta[1];
-				        	var placas = respuesta[2];
-
-				        	//ons.notification.alert("placas: " + placas);
-
-				        	// usuario udg registrado
-				        	if(res === "usuario udg registrado"){
-	                            guardarEnLocalStorage(codigo, nombreRes, placas)
-				        		iniciarPaginaMapaEstacionamiento();
-				        	}
-				        	// usuario udg no registrado
-				        	else if(res === "usuario udg no registrado"){
-				        		iniciarDialogUsuarioUdg();
-				        	}
-				        	// usuario normal registrado
-				        	else if(res === "usuario registrado"){
-				        		guardarEnLocalStorage(codigo, nombreRes, placas)
-				        		iniciarPaginaMapaEstacionamiento();
-				        	}
-				        	// usuario no registrado
-				        	else if(res === "usuario no registrado"){
-				        		nuevoUsuario();
-				        	}
-				        	else // ocurrió un error
-				        	{
-				        		ons.notification.alert("Ocurrió un error");
-				        	}
-				        }
-				        else
+		        	var xhttp2 = new XMLHttpRequest();
+				    xhttp.onreadystatechange = function()
+				    {
+				        if(this.readyState == 4)
 				        {
-				        	ons.notification.alert("Ocurrió un error. Vuelve a intentarlo");
-				        }
-			        }
-			    };
+				        	if(this.status == 200)
+				        	{
+		                        console.log("Respuesta: " + this.responseText);
+					        	// el script devuelve el tipo de usuario, codigo y nombre
+					        	var respuesta = this.responseText.split(",");
+					        	var res = respuesta[0];
+					        	var nombreRes = respuesta[1];
+					        	var placas = respuesta[2];
 
-			    xhttp.open("GET", "https://adrianpl.000webhostapp.com/avance3.php?codigo=" + codigo + "&contrasenia=" + nip + "&tipoUsuario=" + tipoUsuario, true);
-	    		xhttp.send();
+					        	//ons.notification.alert("placas: " + placas);
+
+					        	// usuario udg registrado
+					        	if(res === "usuario udg registrado"){
+					        		habilitarBotonIniciarSesion(page);
+		                            guardarEnLocalStorage(codigo, nombreRes, placas)
+					        		iniciarPaginaMapaEstacionamiento();
+					        	}
+					        	// usuario udg no registrado
+					        	else if(res === "usuario udg no registrado"){
+					        		habilitarBotonIniciarSesion(page);
+					        		iniciarDialogUsuarioUdg();
+					        	}
+					        	// usuario normal registrado
+					        	else if(res === "usuario registrado"){
+					        		habilitarBotonIniciarSesion(page);
+					        		guardarEnLocalStorage(codigo, nombreRes, placas)
+					        		iniciarPaginaMapaEstacionamiento();
+					        	}
+					        	// usuario no registrado
+					        	else if(res === "usuario no registrado"){
+					        		habilitarBotonIniciarSesion(page);
+					        		nuevoUsuario();
+					        	}
+					        	else // ocurrió un error
+					        	{
+					        		ons.notification.alert("Ocurrió un error");
+					        		habilitarBotonIniciarSesion(page);
+					        	}
+					        }
+					        else
+					        {
+					        	ons.notification.alert("Ocurrió un error. Vuelve a intentarlo");
+					        	habilitarBotonIniciarSesion(page);
+					        }
+
+				        }
+				    };
+
+				    xhttp.open("GET", "https://adrianpl.000webhostapp.com/avance3.php?codigo=" + codigo + "&contrasenia=" + nip + "&tipoUsuario=" + tipoUsuario, true);
+		    		xhttp.send();
+		    	}
+		    	else
+	        	{
+	        		ons.notification.alert("Ocurrió un error. Vuelve a intentarlo");
+	        		habilitarBotonIniciarSesion(page);
+	        	}
+	        	
 	        }
 	    };
 
@@ -420,6 +470,10 @@ function generarCodigo()
 /* registra un usuario que no es de udg */
 function registrarNuevoUsuario()
 {
+	//paginaRegistro.querySelector("#botonRegistrarNuevo").disabled = true;
+	//paginaRegistro.querySelector("#botonRegistrarNuevo").innerHTML = "Registrando ...";
+
+
     var codigo = paginaRegistro.querySelector('#codigoGenerado').innerText;
     var nombre = paginaRegistro.querySelector('#nombreNuevoUsuario').value;
     var placas = paginaRegistro.querySelector('#placasNuevoUsuario').value;
@@ -446,6 +500,9 @@ function registrarNuevoUsuario()
             registrarUsuarioBD(codigo, nombre, placas, telefono, contrasenia);
         }
     }
+
+    //paginaRegistro.querySelector("#botonRegistrarNuevo").disabled = false;
+	//paginaRegistro.querySelector("#botonRegistrarNuevo").innerHTML = "Registrarse";
 }
 
 //52665
@@ -470,15 +527,18 @@ function ubicacionesLugaresOcupados()
             	{
                 	var lugaresOcupados = this.response['ubicaciones'];
 
+                	console.log(lugaresOcupados);
+                	console.log(typeof lugaresOcupados);
+
 	                for(var i = 0; i < lugaresOcupados.length; i++)
 	                {
-	                    var latitud = JSON.parse(lugaresOcupados[i].latitud);
-	                    var longitud = JSON.parse(lugaresOcupados[i].longitud);
-	                    var ubicacion = new google.maps.LatLng(latitud, longitud);
+	                	//var obj = JSON.parse(lugaresOcupados[i]);
+	                    var ubicacion = new google.maps.LatLng(lugaresOcupados[i].latitud, lugaresOcupados[i].longitud);
 	                    var contentString = '<p>' + lugaresOcupados[i].placas + '</p>';
 
 	                    crearMarcador(ubicacion, contentString);
 	                }
+	                mostrarBotonesEstacionarse();
             	}
             	esconderCargando();
         	}

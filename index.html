@@ -1,57 +1,60 @@
 <!DOCTYPE html>
+
 <html>
-    <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no, width=device-width">
-        <title>Estacionamiento CUCEI</title>
 
-        <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDhyo9RWlPlYOt706cP3HZyd0rgAPg08C0"async defer></script>
-        <link rel="stylesheet" href="https://unpkg.com/onsenui/css/onsenui.css">
-        <link rel="stylesheet" href="https://unpkg.com/onsenui/css/onsen-css-components.css">
-        <script src="https://unpkg.com/onsenui/js/onsenui.min.js"></script>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no, width=device-width">
+    <title>Estacionamiento CUCEI</title>
 
-        <link rel="stylesheet" type="text/css" href="estilo.css">
-        <script type="text/javascript" src="script.js"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDhyo9RWlPlYOt706cP3HZyd0rgAPg08C0"async defer></script>
+    <link rel="stylesheet" href="https://unpkg.com/onsenui/css/onsenui.css">
+    <link rel="stylesheet" href="https://unpkg.com/onsenui/css/onsen-css-components.css">
+    <script src="https://unpkg.com/onsenui/js/onsenui.min.js"></script>
 
+    <link rel="stylesheet" type="text/css" href="css/index.css" />
+    <script type="text/javascript" src="js/index.js"></script>
 
-    </head>
-    <body>
+</head>
 
-    	<ons-navigator swipeable id="myNavigator"></ons-navigator>
+<body>
+    
 
-    	<!-- Splashscreen -->
-    	<template id="paginaSplashscreen.html">
+    <ons-navigator swipeable id="myNavigator"></ons-navigator>
+
+        <!-- Splashscreen -->
+        <template id="paginaSplashscreen.html">
             <ons-page id="paginaSplashscreen">
-            	<div id="splashscreen">
-	                <img src="https://cdn.pixabay.com/photo/2016/04/01/00/08/automobile-1298012__340.png"
-	                 alt="Imagen carro" height="90" width="200">
+                <div id="splashscreen">
+                    <img src="img/carro_azul.png"
+                     alt="Imagen carro" height="90" width="200">
                 </div>
             </ons-page>
         </template>
 
 
-    	<!------------------------------------------------------------------------------------>
+        <!------------------------------------------------------------------------------------>
         <!-- Página de inicio de sesión -->
         <template id="paginaInicioSesion.html">
             <ons-page id="paginaInicioSesion" class="centrar">
                 <div id="arriba">
-                	<h1>Estacionamiento CUCEI</h1>
-                	<img src="https://cdn.pixabay.com/photo/2012/04/13/21/05/car-33633_960_720.png" height="90" width="200" alt="imagen automovil">
+                    <h1>Estacionamiento CUCEI</h1>
+                    <img src="img/carro_rojo.png" height="90" width="200" alt="imagen automovil">
                 </div>
 
                 <div id="contenido">
-                	<br><br><br>
-                	<ons-input id="codigoEstudiante" placeholder="Código" type="number" modifier="material"></ons-input>
-                	<br><br><br>
-	                <ons-input id="nip" placeholder="NIP" type="password" modifier="material"></ons-input>
-	                <br><br><br>
-	                <ons-button class="botonLargo" id="botonIniciarSesion">Ingresar</ons-button>
-	                <br><br>
+                    <br><br><br>
+                    <ons-input id="codigoEstudiante" placeholder="Código" type="number" modifier="material"></ons-input>
+                    <br><br><br>
+                    <ons-input id="nip" placeholder="NIP" type="password" modifier="material"></ons-input>
+                    <br><br><br>
+                    <ons-button class="botonLargo" id="botonIniciarSesion">Ingresar</ons-button>
+                    <br><br>
                 </div>
 
                 <div id="abajo">
-                	<label id="labelRegistro">¿No perteneces a la UdeG?</label>
-                	<ons-button id="botonRegistrarse" onclick="nuevoUsuario()">Regístrate</ons-button>
+                    <label id="labelRegistro">¿No perteneces a la UdeG?</label>
+                    <ons-button id="botonRegistrarse" onclick="nuevoUsuario()">Regístrate</ons-button>
                 </div>
             </ons-page>
         </template>
@@ -60,28 +63,28 @@
 
         <!-- DIALOG USUARIO UDG  -->
 
-		<ons-alert-dialog id="dialogDatosUsuarioUdg" modifier="rowfooter">
-		  <div class="alert-dialog-title">Ingrese sus datos</div>
-		  <div class="alert-dialog-content">
-		  	<center>
-			  	<label id="nombreUsuarioUdg"></label>
-			  	<br><br>
-	    			<ons-input input-id="placas" placeholder="Placas del carro" type="text" modifier="material"></ons-input>
-	  			<br><br>
-	  				<ons-input input-id="telefono" placeholder="Teléfono" type="tel" modifier="material"></ons-input>
-	  			<br><br>
-  			</center>
-		  </div>
-		  <div class="alert-dialog-footer">
-		  	<ons-alert-dialog-button id="botonAceptar" onclick="registrarDatosUsuarioUdg()">Aceptar</ons-alert-dialog-button>
-		    <ons-alert-dialog-button id="botonCancelar" onclick="cancelarDatos()">Cancelar</ons-alert-dialog-button>
-		  </div>
-		</ons-alert-dialog>
+        <ons-alert-dialog id="dialogDatosUsuarioUdg" modifier="rowfooter">
+          <div class="alert-dialog-title">Ingrese sus datos</div>
+          <div class="alert-dialog-content">
+            <center>
+                <label id="nombreUsuarioUdg"></label>
+                <br><br>
+                    <ons-input input-id="placas" placeholder="Placas del carro" type="text" modifier="material"></ons-input>
+                <br><br>
+                    <ons-input input-id="telefono" placeholder="Teléfono" type="tel" modifier="material"></ons-input>
+                <br><br>
+            </center>
+          </div>
+          <div class="alert-dialog-footer">
+            <ons-alert-dialog-button id="botonAceptar" onclick="registrarDatosUsuarioUdg()">Aceptar</ons-alert-dialog-button>
+            <ons-alert-dialog-button id="botonCancelar" onclick="cancelarDatos()">Cancelar</ons-alert-dialog-button>
+          </div>
+        </ons-alert-dialog>
 
-		<!------------------------------------------------------------------------------>
-		<!-- PÁGINA REGISTRO NUEVO USUARIO -->
+        <!------------------------------------------------------------------------------>
+        <!-- PÁGINA REGISTRO NUEVO USUARIO -->
 
-		<template id="paginaRegistroNuevoUsuario.html">
+        <template id="paginaRegistroNuevoUsuario.html">
             <ons-page id="paginaRegistroNuevoUsuario" style="background-color: #FFFFFF;">
                 <ons-toolbar>
                     <div class="left">
@@ -92,38 +95,39 @@
                     </div>
                 </ons-toolbar>
                 <center>
-                	<br><br>
-                	<label style="font-size: : 20%;">Código:  </label>
-                	<label style="font-weight: bold;" id="codigoGenerado"></label>
-                	<br><br><br>
-                	<!--<label class="letraChica">Nombre</label><br>-->
-                	<ons-input input-id="nombreNuevoUsuario" placeholder="Nombre"
-                		type="text" modifier="material"></ons-input>
-                	<br><br><br>
-                	<!--<label class="letraChica">Placas</label><br>-->
-                	<ons-input input-id="placasNuevoUsuario" placeholder="Placas"
-                		type="text" modifier="material"></ons-input>
-                	<br><br><br>
-                	<!--<label class="letraChica">Teléfono</label><br>-->
-                	<ons-input input-id="telefonoNuevoUsuario" placeholder="Teléfono"
-                		type="tel" modifier="material"></ons-input>
-                	<br><br><br>
-                	<!--<label class="letraChica">Contraseña</label><br>-->
-                	<ons-input input-id="contraseniaNuevoUsuario" placeholder="Contraseña"
-                		type="password" modifier="material"></ons-input>
-                	<br><br><br>
-                	<!--<label class="letraChica">Repita la contraseña</label><br>-->
-                	<ons-input input-id="contrasenia2NuevoUsuario" placeholder="Repita la contraseña"
-                		type="password" modifier="material"></ons-input>
-                	<br><br><br>
-		    		<ons-button class="botonLargo" onclick="registrarNuevoUsuario()">Aceptar</ons-button>
-		    	</center>	
+                    <div id="cabeceraRegistro">
+                    	<label>Código:  </label>
+                    	<label style="font-weight: bold;" id="codigoGenerado"></label>	
+                    </div>
+                    <br><br>
+                    <!--<label class="letraChica">Nombre</label><br>-->
+                    <ons-input input-id="nombreNuevoUsuario" placeholder="Nombre"
+                        type="text" modifier="material"></ons-input>
+                    <br><br><br>
+                    <!--<label class="letraChica">Placas</label><br>-->
+                    <ons-input input-id="placasNuevoUsuario" placeholder="Placas"
+                        type="text" modifier="material"></ons-input>
+                    <br><br><br>
+                    <!--<label class="letraChica">Teléfono</label><br>-->
+                    <ons-input input-id="telefonoNuevoUsuario" placeholder="Teléfono"
+                        type="tel" modifier="material"></ons-input>
+                    <br><br><br>
+                    <!--<label class="letraChica">Contraseña</label><br>-->
+                    <ons-input input-id="contraseniaNuevoUsuario" placeholder="Contraseña"
+                        type="password" modifier="material"></ons-input>
+                    <br><br><br>
+                    <!--<label class="letraChica">Repita la contraseña</label><br>-->
+                    <ons-input input-id="contrasenia2NuevoUsuario" placeholder="Repita la contraseña"
+                        type="password" modifier="material"></ons-input>
+                    <br><br><br>
+                    <ons-button id="botonRegistrarNuevo" class="botonLargo" onclick="registrarNuevoUsuario()">Registrarse</ons-button>
+                </center>   
             </ons-page>
         </template>
 
-		<!------------------------------------------------------------------------------>
+        <!------------------------------------------------------------------------------>
 
-		<template id="paginaMapaEstacionamiento.html">
+        <template id="paginaMapaEstacionamiento.html">
             <ons-page id="paginaMapaEstacionamiento">
                 <ons-toolbar>
                     <div class="left">
@@ -132,23 +136,26 @@
                     <div class="center"></div>
                 </ons-toolbar>
                 <div id="cargando">
-                	<label>Cargando...</label>
-                	<ons-progress-bar indeterminate></ons-progress-bar>
+                    <label>Cargando...</label>
+                    <ons-progress-bar indeterminate></ons-progress-bar>
                 </div>
-	               <!--<label style="font-weight: bold; padding-top: 15px;">Placas: </label>
+                   <!--<label style="font-weight: bold; padding-top: 15px;">Placas: </label>
                    <label id='placas'></label>-->
                    <!--
-	                <iframe id="map-iframe" class="iframe" src="https://maps.google.com/?ll=20.6556784,-103.3248379&z=18&t=p&output=embed" height="600" frameborder="0" style="border:0" allowfullscreen></iframe><br>-->
+                    <iframe id="map-iframe" class="iframe" src="https://maps.google.com/?ll=20.6556784,-103.3248379&z=18&t=p&output=embed" height="600" frameborder="0" style="border:0" allowfullscreen></iframe><br>-->
                     <div id="map"></div>
 
-                    <div style="text-align: center; margin-top: 3px;">
-                    	<ons-button id="botonDesocuparLugar">Desocupar lugar</ons-button>
-                		<ons-button id="botonEstacionarse">Estacionarse</ons-button>
+                    <div id="botonesEstacionarse" style="text-align: center; margin-top: 3px; display: none;">
+                        <ons-button id="botonDesocuparLugar">Desocupar lugar</ons-button>
+                        <ons-button id="botonEstacionarse">Estacionarse</ons-button>
                     </div>
                     
             </ons-page>
         </template>
 
-        <script type="text/javascript" src="cordova.js"></script>
-    </body>
+
+    <script type="text/javascript" src="cordova.js"></script>
+    
+</body>
+
 </html>
